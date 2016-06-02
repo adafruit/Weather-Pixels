@@ -6,7 +6,7 @@
 
 #include <Adafruit_NeoPixel.h>
 
-#define NEOPIXEL_PIN 15 // NeoPixels are connected to this pin
+#define NEOPIXEL_PIN 14 // NeoPixels are connected to this pin
 #define NUM_LEDS    16 // Number of NeoPixels
 #define FPS         50 // Animation frame rate (frames per second)
 
@@ -57,14 +57,16 @@ uint8_t nFlakes = 0;
 
 void randomFlake(void) {
   flake[nFlakes].pos        = random(65536);
+  uint8_t w = windSpeed;
+  if(w < 20) w = 20;
   do {
-    flake[nFlakes].speed    = random(windSpeed / -4, (windSpeed * 5) / 4);
-    yield();
+    flake[nFlakes].speed    = random(w / -4, (w * 5) / 4);
   } while(!flake[nFlakes].speed);
   flake[nFlakes].brightness = random(128, 255);
   flake[nFlakes].time       = random(FPS, FPS * 2); // # frames until snowflake "touches ground"
   nFlakes++;
 }
+
 
 uint16_t lightningCounter = 0;
 
@@ -75,7 +77,7 @@ extern const uint8_t gamma8[]; // Big table at end of this code
 void animSetup(void) {
 
   leds.begin();
-  leds.setBrightness(50);
+  leds.setBrightness(200);
   leds.clear(); // All NeoPixels off ASAP
   leds.show();
 
@@ -122,29 +124,20 @@ void animConfig(
   lightningIntensity = l;
   snowIntensity      = s;
 
-Serial.println("a");
   // Randomize cloud bitmask based on cloud cover percentage:
   cloudBits = 0;
   for(uint8_t i=0; i<NUM_CLOUD_BITS; i++) {
     cloudBits <<= 1;
     if(cloudCover > random(150)) cloudBits |= 1;
   }
-Serial.println("b");
 
   nFlakes = 0;
   memset(flake, 0, sizeof(flake));
-Serial.println("c");
   if(s) {
-    Serial.println("d");
-
     uint8_t n = 3 + (snowIntensity * (MAX_FLAKES - 2)) / 256;
     while(nFlakes < n) {
-      Serial.println("e");
       randomFlake();
-
-      yield();
     }
-    Serial.println("x");
   }
 }
 
@@ -183,8 +176,6 @@ void overlay(uint32_t color) {
 }
 
 void waitForFrame(void) {
-    Serial.print(".");
-
   static uint32_t timeOfLastFrame = 0L;
   uint32_t t;
   while(((t = millis()) - timeOfLastFrame) < (1000 / FPS)) yield();

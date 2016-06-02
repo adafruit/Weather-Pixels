@@ -123,7 +123,8 @@ void updateWeather() {
                // which at 50 FPS would be a little over 5 seconds.
  **************************/
   int16_t timeofday = 32768;
-  weathercode = 41;
+  weathercode = 46;
+
   switch (weathercode) {
     case 0: // tornado!
       Serial.println("tornado");
@@ -132,30 +133,32 @@ void updateWeather() {
       break;
     case 1: // tropical storm
       Serial.println("tropical storm");
-      // no cloud, lots of rain and wind!
+      // no cloud, a lot of rain, no snow, no thunder and lotsa wind!
       animConfig(timeofday, 0, 255, 0, 0, 255);
       break;
     case 2: // hurricane
       Serial.println("hurricane");
-      // some cloud, some rain and wind!
+      // some cloud, some rain, no snow, no thunder and lotsa wind!
       animConfig(timeofday, 50, 100, 0, 0, 255);
       break;
 
     case 3: // severe thunder
       Serial.println("severe thunder");
-      // some cloud, some rain, mega lightning, some wind!
-      animConfig(timeofday, 20, 30, 0, 255, 50);
+      // some cloud, no rain, no snow, mega lightning, some wind!
+      animConfig(timeofday, 100, 0, 0, 255, 20);
       break;
 
     case 4: // thunder
       Serial.println("thunder");
-      // some cloud, some rain, some lightning, some wind!
-      animConfig(timeofday, 20, 30, 0, 100, 50);
+      // some cloud, no rain, no snow, some lightning, some wind!
+      animConfig(timeofday, 100, 0, 0, 100, 50);
       break;
 
     case 5: // mixed rain + snow
     case 6: // mixed rain and sleet
     case 7: // mixed snow and sleet
+    case 18: // sleet
+    case 35: // mixed rain/hail
       Serial.println("Rain/Snow/Sleet");
       // some cloud, some rain, some snow, no lightning, no wind!
       animConfig(timeofday, 10, 100, 100, 0, 0);
@@ -190,10 +193,11 @@ void updateWeather() {
       break;
 
     case 16: // snow
+    case 17: // hail
     case 42: // scattered snow showers
       Serial.println("snow");
       // some cloud, no rain, snow, no lightning, no wind!
-      animConfig(timeofday, 30, 0, 150, 0, 10);
+      animConfig(timeofday, 30, 0, 150, 0, 0);
       break;
       
     case 41: // heavy snow
@@ -201,44 +205,90 @@ void updateWeather() {
       Serial.println("heavy snow");
       // some cloud, no rain, lotsa snow, no lightning, no wind!
       animConfig(timeofday, 30, 0, 255, 0, 0);
-  Serial.println("configd");
       break;
 
     case 31: // clear (night)
-      Serial.println("Clear night");
-      break;
     case 32: // sunny
     case 33: // fair (night)
     case 34: // fair (day)
+    case 25: // hot
+    case 36: // cold
+      Serial.println("Clear/fair");
+      // no cloud, no rain, no snow, no lightning, no wind!
+      animConfig(timeofday, 0, 0, 0, 0, 0);
+      break;
 
+    case 23: // blustery
+    case 24: // windy
+      Serial.println("Windy");
+      // no cloud, no rain, no snow, no lightning, lots wind
+      animConfig(timeofday, 0, 0, 0, 0, 200);
+      break;
+
+    case 26: // cloudy
+    case 19: // dust
+      Serial.println("Cloudy");
+      // lotsa cloud, nothing else
+      animConfig(timeofday, 255, 0, 0, 0, 0);
+      break;
+
+    case 27: // mostly cloudy
+    case 28: // mostly cloudy
+    case 20: // foggy
+    case 22: // smoky
+      Serial.println("mostly Cloudy");
+      // lotsa cloud, nothing else
+      animConfig(timeofday, 150, 0, 0, 0, 0);
+      break;
+
+    case 29: // partly cloudy
+    case 30: // partly cloudy
+    case 44: // partly cloudy
+    case 21: // haze
+      Serial.println("Partly Cloudy");
+      // lotsa cloud, nothing else
+      animConfig(timeofday, 150, 0, 0, 0, 0);
+      break;
+
+    case 37: // isolated thunderstorms
+    case 47: // isolated thundershowers
+      Serial.println("isolated thunderstorms");
+      // some cloud, some rain, no snow, some lite, no wind
+      animConfig(timeofday, 30, 150, 0, 30, 0);
+      break;
+
+    case 38: // scattered thunderstorms
+    case 39: // scattered thundershowers
+      Serial.println("scattered thundershowers");
+      // some cloud, some rain, no snow, some lite, no wind
+      animConfig(timeofday, 20, 150, 0, 60, 0);
+      break;
+
+    case 45: // thundershowers
+      Serial.println("thundershowers");
+      // some cloud, rain, no snow, lite, no wind
+      animConfig(timeofday, 20, 250, 0, 100, 0);
+      break;
+
+    case 40: // scattered showers
+      Serial.println("scattered showers");
+      // some cloud, some rain, no snow, no lite, no wind
+      animConfig(timeofday, 30, 50, 0, 0, 0);
+      break;
+
+    case 46: // snow showers
+      Serial.println("snow showers");
+      // some cloud, some rain, some snow, no lite, no wind
+      animConfig(timeofday, 30, 100, 100, 0, 0);
+      break;
+      
     default:
       break;
   }
 /*
-17  hail
-18  sleet
-19  dust
-20  foggy
-21  haze
-22  smoky
-23  blustery
-24  windy
+
 25  cold
-26  cloudy
-27  mostly cloudy (night)
-28  mostly cloudy (day)
-29  partly cloudy (night)
-30  partly cloudy (day)
-35  mixed rain and hail
 36  hot
-37  isolated thunderstorms
-38  scattered thunderstorms
-39  scattered thunderstorms
-40  scattered showers
-44  partly cloudy
-45  thundershowers
-46  snow showers
-47  isolated thundershowers
 3200  not available
 */
 }
