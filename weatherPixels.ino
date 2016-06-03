@@ -9,16 +9,18 @@ void renderFrame(void);
 
 const char* ssid     = "adafruit";
 const char* password = "ffffffff";
+int8_t utc_offset = -5; // hours off of UTC, e.g. EST is -5 
+const char* location = "boston%2C%20ma";
 
+const char* path_prefix = "/v1/public/yql?q=select%20item.condition.code%2C%20item.condition.text%20%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22";
+const char* path_postfix = "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 const char* host = "query.yahooapis.com";
 const int httpPort = 80;
 
-const char* location = "boston%2C%20ma";
-const char* path_prefix = "/v1/public/yql?q=select%20item.condition.code%2C%20item.condition.text%20%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22";
-const char* path_postfix = "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
 int16_t weathercode = -1;
-  
+int16_t createhour, createmin;
+
 void setup() {
   Serial.begin(115200);
   delay(10);
@@ -51,7 +53,7 @@ uint32_t timekeep=0xFFFF;
 void loop() {
   uint32_t currTime = millis();
   // every 30 seconds (or if there's a rollover/first time running, update the weather!
-  if ((timekeep > currTime)  || (currTime > (timekeep + 10000))) {
+  if ((timekeep > currTime)  || (currTime > (timekeep + 30000))) {
     timekeep = currTime;
     updateWeather();
   }
@@ -83,7 +85,7 @@ void updateWeather() {
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
                "Connection: close\r\n\r\n");
-  delay(100);
+  delay(500);
 
   weathercode = -1;
   // Read all the lines of the reply from server and print them to Serial
@@ -93,12 +95,28 @@ void updateWeather() {
     if (i < 0) continue;
     Serial.println(line);
     weathercode = (line.substring(i+8)).toInt();
+
+    // extract hour and minute
+    i = line.indexOf(String("\"created\":"));
+    if (i < 0) continue;
+    createhour = (line.substring(i+22)).toInt();
+    createmin = (line.substring(i+25)).toInt();
   }
   
   Serial.println("Closing connection");
 
-  Serial.print("Weather code: "); Serial.println(weathercode);
+  // convert from UTC to local
+  createhour += 24;
+  createhour += utc_offset;
+  createhour %= 24;
+  Serial.print("\nWeather code: "); Serial.print(weathercode);
+  Serial.print(" @ "); Serial.print(createhour); Serial.print(":"); Serial.println(createmin);
 
+  // Get the current time of day, between 0 and 65535
+  uint16_t timeofday = map((createhour * 60) + createmin, 0, 1440, 0, 65535);
+
+  Serial.print("Time of day = "); Serial.print(timeofday); Serial.println("/65535");
+  
  /* void animConfig(
  uint16_t t,   // Time of day in fixed-point 16-bit units, where 0=midnight,
                // 32768=noon, 65536=midnight. THIS DOES NOT CORRESPOND TO
@@ -122,8 +140,8 @@ void updateWeather() {
                // about 257 frames to make a full revolution of the LEDs,
                // which at 50 FPS would be a little over 5 seconds.
  **************************/
-  int16_t timeofday = 32768;
-  weathercode = 46;
+
+  // weathercode = 46; // hardcode weather animation test
 
   switch (weathercode) {
     case 0: // tornado!
